@@ -1,6 +1,9 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
 
+settings:
+  force_rerun: true
+
 compute: azureml:Compute-cluster-60302101
 
 inputs:
