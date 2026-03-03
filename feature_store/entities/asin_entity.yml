@@ -1,0 +1,8 @@
+$schema: https://azuremlschemas.azureedge.net/latest/featureStoreEntity.schema.json
+
+name: product
+version: "1"
+description: Product entity key
+index_columns:
+  - name: asin
+    type: string

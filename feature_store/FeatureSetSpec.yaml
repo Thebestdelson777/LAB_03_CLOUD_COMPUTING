@@ -1,0 +1,33 @@
+$schema: https://azuremlschemas.azureedge.net/latest/featureSetSpec.schema.json
+
+source:
+  type: parquet
+  path: azureml://subscriptions/86c2aaee-2c2c-4ba5-9650-714b68528e97/resourceGroups/rg-60302101/workspaces/Amazon-Electronics-Lab-60302101/datastores/workspaceblobstore/paths/azureml/4a80d041-d886-4db9-a8a5-82700414333a/out/
+  timestamp_column:
+    name: reviewTime
+
+index_columns:
+  - name: reviewerID
+    type: string
+  - name: asin
+    type: string
+
+features:
+  - name: review_length_chars
+    type: long
+  - name: review_length_words
+    type: long
+  - name: price
+    type: double
+  - name: overall
+    type: double
+  - name: review_year
+    type: integer
+  - name: sentiment_pos
+    type: double
+  - name: sentiment_neg
+    type: double
+  - name: sentiment_neu
+    type: double
+  - name: sentiment_compound
+    type: double

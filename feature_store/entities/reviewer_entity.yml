@@ -1,0 +1,8 @@
+$schema: https://azuremlschemas.azureedge.net/latest/featureStoreEntity.schema.json
+
+name: reviewer
+version: "1"
+description: Reviewer entity key
+index_columns:
+  - name: reviewerID
+    type: string
