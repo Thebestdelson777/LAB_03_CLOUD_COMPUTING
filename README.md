@@ -247,7 +247,23 @@ feature_store/
 ```
 
 ---
+## Successful Pipeline Execution
 
+The pipeline was executed successfully in Azure ML Studio under:
+
+Workspace:
+Amazon-Electronics-Lab-60302101
+
+Experiment:
+LAB_03_CLOUD_COMPUTING
+
+Pipeline Run:
+lucid_kitten_m68vl7lr5t
+
+Status:
+Completed
+
+The pipeline produced the merged feature dataset and successfully registered the Feature Set (version 1) in Azure ML Feature Store.
 ## Final Outcome
 
 - Modular Azure ML components implemented
