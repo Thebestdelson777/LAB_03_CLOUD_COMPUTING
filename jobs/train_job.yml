@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 type: command
 
-display_name: amazon_review_model_training
+display_name: amazon_review_model_training_sbert
 experiment_name: amazon_review_training_experiment
 
 code: ../src
@@ -12,6 +12,9 @@ command: >
   --val_data ${{inputs.val_data}}/data.parquet
   --test_data ${{inputs.test_data}}/data.parquet
   --output ${{outputs.model_output}}
+  --feature_set sbert
+  --c_value 0.89
+  --max_iter 300
 
 inputs:
   train_data:

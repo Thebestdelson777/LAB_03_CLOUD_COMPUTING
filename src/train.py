@@ -17,9 +17,6 @@ from sklearn.metrics import (
 )
 
 
-# --------------------------------------------------
-# Arguments
-# --------------------------------------------------
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -28,16 +25,18 @@ def parse_args():
     parser.add_argument("--test_data", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
 
-    # Hyperparameters for sweep job
     parser.add_argument("--c_value", type=float, default=0.89)
     parser.add_argument("--max_iter", type=int, default=300)
+    parser.add_argument(
+        "--feature_set",
+        type=str,
+        default="all",
+        choices=["sbert", "sbert_tfidf", "all"]
+    )
 
     return parser.parse_args()
 
 
-# --------------------------------------------------
-# Load data
-# --------------------------------------------------
 def load_data(path):
     if not os.path.exists(path):
         raise FileNotFoundError(f"Path does not exist: {path}")
@@ -47,9 +46,6 @@ def load_data(path):
     return df
 
 
-# --------------------------------------------------
-# Labels
-# --------------------------------------------------
 def create_labels(df):
     if "overall" not in df.columns:
         raise RuntimeError("Column 'overall' is missing.")
@@ -59,10 +55,7 @@ def create_labels(df):
     return df
 
 
-# --------------------------------------------------
-# Feature selection
-# --------------------------------------------------
-def get_feature_columns(df):
+def get_feature_columns(df, feature_set):
     length_cols = ["review_length_chars", "review_length_words"]
     sentiment_cols = [
         "sentiment_pos",
@@ -76,18 +69,16 @@ def get_feature_columns(df):
         key=lambda x: int(x.split("_")[1])
     )
 
-    feature_cols = []
+    if feature_set == "sbert":
+        feature_cols = sbert_cols
+    elif feature_set == "sbert_tfidf":
+        feature_cols = sbert_cols + tfidf_cols
+    elif feature_set == "all":
+        feature_cols = length_cols + sentiment_cols + tfidf_cols + sbert_cols
+    else:
+        raise RuntimeError(f"Unsupported feature_set: {feature_set}")
 
-    for col in length_cols:
-        if col in df.columns:
-            feature_cols.append(col)
-
-    for col in sentiment_cols:
-        if col in df.columns:
-            feature_cols.append(col)
-
-    feature_cols.extend(tfidf_cols)
-    feature_cols.extend(sbert_cols)
+    feature_cols = [col for col in feature_cols if col in df.columns]
 
     if len(feature_cols) == 0:
         raise RuntimeError("No feature columns were found in the dataset.")
@@ -113,9 +104,6 @@ def build_features(df, feature_cols):
     return X
 
 
-# --------------------------------------------------
-# Evaluation
-# --------------------------------------------------
 def evaluate(model, X, y, split):
     preds = model.predict(X)
     probs = model.predict_proba(X)[:, 1]
@@ -140,9 +128,6 @@ def evaluate(model, X, y, split):
     print(f"AUC      : {auc:.4f}")
 
 
-# --------------------------------------------------
-# Main
-# --------------------------------------------------
 def main():
     args = parse_args()
     start_time = time.time()
@@ -159,19 +144,19 @@ def main():
     val_df = create_labels(val_df)
     test_df = create_labels(test_df)
 
-    print("Detecting feature columns from training data...")
-    feature_cols = get_feature_columns(train_df)
+    print("Selecting feature columns...")
+    feature_cols = get_feature_columns(train_df, args.feature_set)
 
+    print(f"Feature set: {args.feature_set}")
     print(f"Total feature columns found: {len(feature_cols)}")
     print(f"First 10 feature columns: {feature_cols[:10]}")
 
     mlflow.log_param("model_type", "LogisticRegression")
+    mlflow.log_param("feature_set", args.feature_set)
     mlflow.log_param("num_features", len(feature_cols))
     mlflow.log_param("label_rule", "overall >= 4")
     mlflow.log_param("solver", "saga")
     mlflow.log_param("random_state", 42)
-
-    # hyperparameters for sweep
     mlflow.log_param("c_value", args.c_value)
     mlflow.log_param("max_iter", args.max_iter)
 
@@ -206,6 +191,7 @@ def main():
     artifact = {
         "model": model,
         "feature_columns": feature_cols,
+        "feature_set": args.feature_set,
     }
     joblib.dump(artifact, model_path)
 
