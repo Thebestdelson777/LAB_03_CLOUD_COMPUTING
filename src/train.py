@@ -28,6 +28,10 @@ def parse_args():
     parser.add_argument("--test_data", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
 
+    # Hyperparameters for sweep job
+    parser.add_argument("--c_value", type=float, default=0.89)
+    parser.add_argument("--max_iter", type=int, default=300)
+
     return parser.parse_args()
 
 
@@ -165,8 +169,11 @@ def main():
     mlflow.log_param("num_features", len(feature_cols))
     mlflow.log_param("label_rule", "overall >= 4")
     mlflow.log_param("solver", "saga")
-    mlflow.log_param("max_iter", 500)
     mlflow.log_param("random_state", 42)
+
+    # hyperparameters for sweep
+    mlflow.log_param("c_value", args.c_value)
+    mlflow.log_param("max_iter", args.max_iter)
 
     print("Building feature matrices...")
     X_train = build_features(train_df, feature_cols)
@@ -179,8 +186,9 @@ def main():
 
     print("Training Logistic Regression model...")
     model = LogisticRegression(
+        C=args.c_value,
         solver="saga",
-        max_iter=500,
+        max_iter=args.max_iter,
         random_state=42,
         n_jobs=-1,
     )
@@ -195,7 +203,6 @@ def main():
     os.makedirs(args.output, exist_ok=True)
     model_path = os.path.join(args.output, "model.pkl")
 
-    # Save both the model and the exact feature column order
     artifact = {
         "model": model,
         "feature_columns": feature_cols,
