@@ -1,10 +1,8 @@
-$schema: https://azuremlschemas.azureedge.net/latest/featureSetSpec.schema.json
+$schema: https://azuremlschemas.azureedge.net/latest/featureSetSpecification.schema.json
 
 source:
   type: parquet
-  path: azureml://subscriptions/86c2aaee-2c2c-4ba5-9650-714b68528e97/resourceGroups/rg-60302101/workspaces/Amazon-Electronics-Lab-60302101/datastores/workspaceblobstore/paths/azureml/4a80d041-d886-4db9-a8a5-82700414333a/out/
-  timestamp_column:
-    name: reviewTime
+  path: azureml://subscriptions/86c2aaee-2c2c-4ba5-9650-714b68528e97/resourcegroups/rg-60302101/workspaces/amazon-electronics-lab-60302101/datastores/workspaceblobstore/paths/azureml/9e654cbc-6326-4865-bd63-a6891bf24c65/out/
 
 index_columns:
   - name: reviewerID
@@ -13,16 +11,14 @@ index_columns:
     type: string
 
 features:
+  - name: overall
+    type: double
+
   - name: review_length_chars
     type: long
   - name: review_length_words
     type: long
-  - name: price
-    type: double
-  - name: overall
-    type: double
-  - name: review_year
-    type: integer
+
   - name: sentiment_pos
     type: double
   - name: sentiment_neg
@@ -30,4 +26,1070 @@ features:
   - name: sentiment_neu
     type: double
   - name: sentiment_compound
+    type: double
+
+  - name: tfidf_10
+    type: double
+  - name: tfidf_100
+    type: double
+  - name: tfidf_20
+    type: double
+  - name: tfidf_30
+    type: double
+  - name: tfidf_50
+    type: double
+  - name: tfidf_ability
+    type: double
+  - name: tfidf_able
+    type: double
+  - name: tfidf_absolutely
+    type: double
+  - name: tfidf_access
+    type: double
+  - name: tfidf_actually
+    type: double
+  - name: tfidf_adapter
+    type: double
+  - name: tfidf_add
+    type: double
+  - name: tfidf_advertised
+    type: double
+  - name: tfidf_ago
+    type: double
+  - name: tfidf_air
+    type: double
+  - name: tfidf_allows
+    type: double
+  - name: tfidf_amazing
+    type: double
+  - name: tfidf_amazon
+    type: double
+  - name: tfidf_android
+    type: double
+  - name: tfidf_antenna
+    type: double
+  - name: tfidf_app
+    type: double
+  - name: tfidf_apple
+    type: double
+  - name: tfidf_apps
+    type: double
+  - name: tfidf_arrived
+    type: double
+  - name: tfidf_asus
+    type: double
+  - name: tfidf_audio
+    type: double
+  - name: tfidf_available
+    type: double
+  - name: tfidf_away
+    type: double
+  - name: tfidf_awesome
+    type: double
+  - name: tfidf_backup
+    type: double
+  - name: tfidf_bad
+    type: double
+  - name: tfidf_bag
+    type: double
+  - name: tfidf_based
+    type: double
+  - name: tfidf_bass
+    type: double
+  - name: tfidf_batteries
+    type: double
+  - name: tfidf_battery
+    type: double
+  - name: tfidf_battery life
+    type: double
+  - name: tfidf_believe
+    type: double
+  - name: tfidf_best
+    type: double
+  - name: tfidf_better
+    type: double
+  - name: tfidf_big
+    type: double
+  - name: tfidf_bit
+    type: double
+  - name: tfidf_black
+    type: double
+  - name: tfidf_blue
+    type: double
+  - name: tfidf_bluetooth
+    type: double
+  - name: tfidf_bought
+    type: double
+  - name: tfidf_box
+    type: double
+  - name: tfidf_brand
+    type: double
+  - name: tfidf_bright
+    type: double
+  - name: tfidf_build
+    type: double
+  - name: tfidf_built
+    type: double
+  - name: tfidf_button
+    type: double
+  - name: tfidf_buttons
+    type: double
+  - name: tfidf_buy
+    type: double
+  - name: tfidf_buying
+    type: double
+  - name: tfidf_cable
+    type: double
+  - name: tfidf_cables
+    type: double
+  - name: tfidf_came
+    type: double
+  - name: tfidf_camera
+    type: double
+  - name: tfidf_cameras
+    type: double
+  - name: tfidf_canon
+    type: double
+  - name: tfidf_car
+    type: double
+  - name: tfidf_card
+    type: double
+  - name: tfidf_cards
+    type: double
+  - name: tfidf_carry
+    type: double
+  - name: tfidf_case
+    type: double
+  - name: tfidf_cases
+    type: double
+  - name: tfidf_cd
+    type: double
+  - name: tfidf_change
+    type: double
+  - name: tfidf_channels
+    type: double
+  - name: tfidf_charge
+    type: double
+  - name: tfidf_charger
+    type: double
+  - name: tfidf_charging
+    type: double
+  - name: tfidf_cheap
+    type: double
+  - name: tfidf_cheaper
+    type: double
+  - name: tfidf_clean
+    type: double
+  - name: tfidf_clear
+    type: double
+  - name: tfidf_close
+    type: double
+  - name: tfidf_color
+    type: double
+  - name: tfidf_come
+    type: double
+  - name: tfidf_comes
+    type: double
+  - name: tfidf_comfortable
+    type: double
+  - name: tfidf_compact
+    type: double
+  - name: tfidf_company
+    type: double
+  - name: tfidf_compared
+    type: double
+  - name: tfidf_completely
+    type: double
+  - name: tfidf_computer
+    type: double
+  - name: tfidf_computers
+    type: double
+  - name: tfidf_connect
+    type: double
+  - name: tfidf_connected
+    type: double
+  - name: tfidf_connection
+    type: double
+  - name: tfidf_control
+    type: double
+  - name: tfidf_cool
+    type: double
+  - name: tfidf_cord
+    type: double
+  - name: tfidf_cost
+    type: double
+  - name: tfidf_couple
+    type: double
+  - name: tfidf_course
+    type: double
+  - name: tfidf_cover
+    type: double
+  - name: tfidf_customer
+    type: double
+  - name: tfidf_data
+    type: double
+  - name: tfidf_day
+    type: double
+  - name: tfidf_days
+    type: double
+  - name: tfidf_deal
+    type: double
+  - name: tfidf_decent
+    type: double
+  - name: tfidf_decided
+    type: double
+  - name: tfidf_definitely
+    type: double
+  - name: tfidf_design
+    type: double
+  - name: tfidf_designed
+    type: double
+  - name: tfidf_desktop
+    type: double
+  - name: tfidf_device
+    type: double
+  - name: tfidf_devices
+    type: double
+  - name: tfidf_did
+    type: double
+  - name: tfidf_didnt
+    type: double
+  - name: tfidf_difference
+    type: double
+  - name: tfidf_different
+    type: double
+  - name: tfidf_difficult
+    type: double
+  - name: tfidf_digital
+    type: double
+  - name: tfidf_display
+    type: double
+  - name: tfidf_does
+    type: double
+  - name: tfidf_doesnt
+    type: double
+  - name: tfidf_doing
+    type: double
+  - name: tfidf_dont
+    type: double
+  - name: tfidf_drive
+    type: double
+  - name: tfidf_drivers
+    type: double
+  - name: tfidf_drives
+    type: double
+  - name: tfidf_dvd
+    type: double
+  - name: tfidf_ear
+    type: double
+  - name: tfidf_easier
+    type: double
+  - name: tfidf_easily
+    type: double
+  - name: tfidf_easy
+    type: double
+  - name: tfidf_easy use
+    type: double
+  - name: tfidf_end
+    type: double
+  - name: tfidf_especially
+    type: double
+  - name: tfidf_exactly
+    type: double
+  - name: tfidf_excellent
+    type: double
+  - name: tfidf_expect
+    type: double
+  - name: tfidf_expected
+    type: double
+  - name: tfidf_expensive
+    type: double
+  - name: tfidf_experience
+    type: double
+  - name: tfidf_external
+    type: double
+  - name: tfidf_extra
+    type: double
+  - name: tfidf_extremely
+    type: double
+  - name: tfidf_fact
+    type: double
+  - name: tfidf_fairly
+    type: double
+  - name: tfidf_fan
+    type: double
+  - name: tfidf_far
+    type: double
+  - name: tfidf_fast
+    type: double
+  - name: tfidf_faster
+    type: double
+  - name: tfidf_feature
+    type: double
+  - name: tfidf_features
+    type: double
+  - name: tfidf_feel
+    type: double
+  - name: tfidf_feels
+    type: double
+  - name: tfidf_feet
+    type: double
+  - name: tfidf_files
+    type: double
+  - name: tfidf_finally
+    type: double
+  - name: tfidf_fine
+    type: double
+  - name: tfidf_firmware
+    type: double
+  - name: tfidf_fit
+    type: double
+  - name: tfidf_fits
+    type: double
+  - name: tfidf_flash
+    type: double
+  - name: tfidf_focus
+    type: double
+  - name: tfidf_free
+    type: double
+  - name: tfidf_fully
+    type: double
+  - name: tfidf_function
+    type: double
+  - name: tfidf_games
+    type: double
+  - name: tfidf_gaming
+    type: double
+  - name: tfidf_gave
+    type: double
+  - name: tfidf_gets
+    type: double
+  - name: tfidf_getting
+    type: double
+  - name: tfidf_gives
+    type: double
+  - name: tfidf_goes
+    type: double
+  - name: tfidf_going
+    type: double
+  - name: tfidf_good
+    type: double
+  - name: tfidf_got
+    type: double
+  - name: tfidf_gps
+    type: double
+  - name: tfidf_great
+    type: double
+  - name: tfidf_guess
+    type: double
+  - name: tfidf_half
+    type: double
+  - name: tfidf_hand
+    type: double
+  - name: tfidf_happy
+    type: double
+  - name: tfidf_hard
+    type: double
+  - name: tfidf_hard drive
+    type: double
+  - name: tfidf_havent
+    type: double
+  - name: tfidf_having
+    type: double
+  - name: tfidf_hd
+    type: double
+  - name: tfidf_hdmi
+    type: double
+  - name: tfidf_head
+    type: double
+  - name: tfidf_headphone
+    type: double
+  - name: tfidf_headphones
+    type: double
+  - name: tfidf_headset
+    type: double
+  - name: tfidf_hear
+    type: double
+  - name: tfidf_heavy
+    type: double
+  - name: tfidf_help
+    type: double
+  - name: tfidf_high
+    type: double
+  - name: tfidf_higher
+    type: double
+  - name: tfidf_highly
+    type: double
+  - name: tfidf_highly recommend
+    type: double
+  - name: tfidf_hold
+    type: double
+  - name: tfidf_holds
+    type: double
+  - name: tfidf_home
+    type: double
+  - name: tfidf_hours
+    type: double
+  - name: tfidf_house
+    type: double
+  - name: tfidf_id
+    type: double
+  - name: tfidf_ill
+    type: double
+  - name: tfidf_im
+    type: double
+  - name: tfidf_image
+    type: double
+  - name: tfidf_impressed
+    type: double
+  - name: tfidf_included
+    type: double
+  - name: tfidf_inside
+    type: double
+  - name: tfidf_install
+    type: double
+  - name: tfidf_installation
+    type: double
+  - name: tfidf_installed
+    type: double
+  - name: tfidf_instead
+    type: double
+  - name: tfidf_instructions
+    type: double
+  - name: tfidf_internet
+    type: double
+  - name: tfidf_ipad
+    type: double
+  - name: tfidf_iphone
+    type: double
+  - name: tfidf_ipod
+    type: double
+  - name: tfidf_isnt
+    type: double
+  - name: tfidf_issue
+    type: double
+  - name: tfidf_issues
+    type: double
+  - name: tfidf_item
+    type: double
+  - name: tfidf_ive
+    type: double
+  - name: tfidf_job
+    type: double
+  - name: tfidf_just
+    type: double
+  - name: tfidf_just fine
+    type: double
+  - name: tfidf_key
+    type: double
+  - name: tfidf_keyboard
+    type: double
+  - name: tfidf_keys
+    type: double
+  - name: tfidf_kind
+    type: double
+  - name: tfidf_kindle
+    type: double
+  - name: tfidf_know
+    type: double
+  - name: tfidf_laptop
+    type: double
+  - name: tfidf_large
+    type: double
+  - name: tfidf_larger
+    type: double
+  - name: tfidf_lcd
+    type: double
+  - name: tfidf_led
+    type: double
+  - name: tfidf_left
+    type: double
+  - name: tfidf_lens
+    type: double
+  - name: tfidf_let
+    type: double
+  - name: tfidf_level
+    type: double
+  - name: tfidf_life
+    type: double
+  - name: tfidf_light
+    type: double
+  - name: tfidf_like
+    type: double
+  - name: tfidf_line
+    type: double
+  - name: tfidf_listen
+    type: double
+  - name: tfidf_listening
+    type: double
+  - name: tfidf_little
+    type: double
+  - name: tfidf_live
+    type: double
+  - name: tfidf_logitech
+    type: double
+  - name: tfidf_long
+    type: double
+  - name: tfidf_longer
+    type: double
+  - name: tfidf_look
+    type: double
+  - name: tfidf_looking
+    type: double
+  - name: tfidf_looks
+    type: double
+  - name: tfidf_lot
+    type: double
+  - name: tfidf_love
+    type: double
+  - name: tfidf_low
+    type: double
+  - name: tfidf_mac
+    type: double
+  - name: tfidf_machine
+    type: double
+  - name: tfidf_make
+    type: double
+  - name: tfidf_make sure
+    type: double
+  - name: tfidf_makes
+    type: double
+  - name: tfidf_making
+    type: double
+  - name: tfidf_manual
+    type: double
+  - name: tfidf_maybe
+    type: double
+  - name: tfidf_means
+    type: double
+  - name: tfidf_media
+    type: double
+  - name: tfidf_memory
+    type: double
+  - name: tfidf_mini
+    type: double
+  - name: tfidf_minutes
+    type: double
+  - name: tfidf_mode
+    type: double
+  - name: tfidf_model
+    type: double
+  - name: tfidf_money
+    type: double
+  - name: tfidf_monitor
+    type: double
+  - name: tfidf_month
+    type: double
+  - name: tfidf_months
+    type: double
+  - name: tfidf_mount
+    type: double
+  - name: tfidf_mouse
+    type: double
+  - name: tfidf_movie
+    type: double
+  - name: tfidf_movies
+    type: double
+  - name: tfidf_mp3
+    type: double
+  - name: tfidf_music
+    type: double
+  - name: tfidf_need
+    type: double
+  - name: tfidf_needed
+    type: double
+  - name: tfidf_needs
+    type: double
+  - name: tfidf_netflix
+    type: double
+  - name: tfidf_network
+    type: double
+  - name: tfidf_new
+    type: double
+  - name: tfidf_nice
+    type: double
+  - name: tfidf_night
+    type: double
+  - name: tfidf_noise
+    type: double
+  - name: tfidf_note
+    type: double
+  - name: tfidf_noticed
+    type: double
+  - name: tfidf_number
+    type: double
+  - name: tfidf_ok
+    type: double
+  - name: tfidf_old
+    type: double
+  - name: tfidf_older
+    type: double
+  - name: tfidf_ones
+    type: double
+  - name: tfidf_online
+    type: double
+  - name: tfidf_open
+    type: double
+  - name: tfidf_option
+    type: double
+  - name: tfidf_order
+    type: double
+  - name: tfidf_ordered
+    type: double
+  - name: tfidf_original
+    type: double
+  - name: tfidf_overall
+    type: double
+  - name: tfidf_pair
+    type: double
+  - name: tfidf_past
+    type: double
+  - name: tfidf_pay
+    type: double
+  - name: tfidf_pc
+    type: double
+  - name: tfidf_people
+    type: double
+  - name: tfidf_perfect
+    type: double
+  - name: tfidf_perfectly
+    type: double
+  - name: tfidf_performance
+    type: double
+  - name: tfidf_phone
+    type: double
+  - name: tfidf_photos
+    type: double
+  - name: tfidf_picture
+    type: double
+  - name: tfidf_pictures
+    type: double
+  - name: tfidf_piece
+    type: double
+  - name: tfidf_place
+    type: double
+  - name: tfidf_plastic
+    type: double
+  - name: tfidf_play
+    type: double
+  - name: tfidf_player
+    type: double
+  - name: tfidf_playing
+    type: double
+  - name: tfidf_pleased
+    type: double
+  - name: tfidf_plug
+    type: double
+  - name: tfidf_plugged
+    type: double
+  - name: tfidf_plus
+    type: double
+  - name: tfidf_pocket
+    type: double
+  - name: tfidf_point
+    type: double
+  - name: tfidf_port
+    type: double
+  - name: tfidf_portable
+    type: double
+  - name: tfidf_ports
+    type: double
+  - name: tfidf_power
+    type: double
+  - name: tfidf_pretty
+    type: double
+  - name: tfidf_price
+    type: double
+  - name: tfidf_pro
+    type: double
+  - name: tfidf_probably
+    type: double
+  - name: tfidf_problem
+    type: double
+  - name: tfidf_problems
+    type: double
+  - name: tfidf_product
+    type: double
+  - name: tfidf_products
+    type: double
+  - name: tfidf_protection
+    type: double
+  - name: tfidf_protector
+    type: double
+  - name: tfidf_provide
+    type: double
+  - name: tfidf_purchase
+    type: double
+  - name: tfidf_purchased
+    type: double
+  - name: tfidf_quality
+    type: double
+  - name: tfidf_quick
+    type: double
+  - name: tfidf_quickly
+    type: double
+  - name: tfidf_quite
+    type: double
+  - name: tfidf_radio
+    type: double
+  - name: tfidf_ram
+    type: double
+  - name: tfidf_range
+    type: double
+  - name: tfidf_read
+    type: double
+  - name: tfidf_reading
+    type: double
+  - name: tfidf_real
+    type: double
+  - name: tfidf_really
+    type: double
+  - name: tfidf_reason
+    type: double
+  - name: tfidf_received
+    type: double
+  - name: tfidf_receiver
+    type: double
+  - name: tfidf_recommend
+    type: double
+  - name: tfidf_recommended
+    type: double
+  - name: tfidf_remote
+    type: double
+  - name: tfidf_replace
+    type: double
+  - name: tfidf_replacement
+    type: double
+  - name: tfidf_resolution
+    type: double
+  - name: tfidf_return
+    type: double
+  - name: tfidf_review
+    type: double
+  - name: tfidf_reviews
+    type: double
+  - name: tfidf_right
+    type: double
+  - name: tfidf_room
+    type: double
+  - name: tfidf_router
+    type: double
+  - name: tfidf_run
+    type: double
+  - name: tfidf_running
+    type: double
+  - name: tfidf_said
+    type: double
+  - name: tfidf_samsung
+    type: double
+  - name: tfidf_say
+    type: double
+  - name: tfidf_says
+    type: double
+  - name: tfidf_screen
+    type: double
+  - name: tfidf_sd
+    type: double
+  - name: tfidf_second
+    type: double
+  - name: tfidf_seconds
+    type: double
+  - name: tfidf_seen
+    type: double
+  - name: tfidf_service
+    type: double
+  - name: tfidf_set
+    type: double
+  - name: tfidf_setting
+    type: double
+  - name: tfidf_settings
+    type: double
+  - name: tfidf_setup
+    type: double
+  - name: tfidf_shipping
+    type: double
+  - name: tfidf_short
+    type: double
+  - name: tfidf_signal
+    type: double
+  - name: tfidf_similar
+    type: double
+  - name: tfidf_simple
+    type: double
+  - name: tfidf_simply
+    type: double
+  - name: tfidf_single
+    type: double
+  - name: tfidf_size
+    type: double
+  - name: tfidf_slightly
+    type: double
+  - name: tfidf_slow
+    type: double
+  - name: tfidf_small
+    type: double
+  - name: tfidf_smaller
+    type: double
+  - name: tfidf_software
+    type: double
+  - name: tfidf_solid
+    type: double
+  - name: tfidf_sony
+    type: double
+  - name: tfidf_sound
+    type: double
+  - name: tfidf_sound quality
+    type: double
+  - name: tfidf_sounds
+    type: double
+  - name: tfidf_space
+    type: double
+  - name: tfidf_speaker
+    type: double
+  - name: tfidf_speakers
+    type: double
+  - name: tfidf_speed
+    type: double
+  - name: tfidf_stand
+    type: double
+  - name: tfidf_standard
+    type: double
+  - name: tfidf_star
+    type: double
+  - name: tfidf_stars
+    type: double
+  - name: tfidf_start
+    type: double
+  - name: tfidf_started
+    type: double
+  - name: tfidf_stereo
+    type: double
+  - name: tfidf_storage
+    type: double
+  - name: tfidf_store
+    type: double
+  - name: tfidf_streaming
+    type: double
+  - name: tfidf_stuff
+    type: double
+  - name: tfidf_sturdy
+    type: double
+  - name: tfidf_super
+    type: double
+  - name: tfidf_support
+    type: double
+  - name: tfidf_sure
+    type: double
+  - name: tfidf_switch
+    type: double
+  - name: tfidf_tablet
+    type: double
+  - name: tfidf_takes
+    type: double
+  - name: tfidf_taking
+    type: double
+  - name: tfidf_tell
+    type: double
+  - name: tfidf_test
+    type: double
+  - name: tfidf_thats
+    type: double
+  - name: tfidf_theres
+    type: double
+  - name: tfidf_theyre
+    type: double
+  - name: tfidf_thing
+    type: double
+  - name: tfidf_things
+    type: double
+  - name: tfidf_think
+    type: double
+  - name: tfidf_thought
+    type: double
+  - name: tfidf_time
+    type: double
+  - name: tfidf_times
+    type: double
+  - name: tfidf_took
+    type: double
+  - name: tfidf_touch
+    type: double
+  - name: tfidf_transfer
+    type: double
+  - name: tfidf_tried
+    type: double
+  - name: tfidf_tripod
+    type: double
+  - name: tfidf_try
+    type: double
+  - name: tfidf_trying
+    type: double
+  - name: tfidf_turn
+    type: double
+  - name: tfidf_turned
+    type: double
+  - name: tfidf_tv
+    type: double
+  - name: tfidf_type
+    type: double
+  - name: tfidf_unit
+    type: double
+  - name: tfidf_unless
+    type: double
+  - name: tfidf_update
+    type: double
+  - name: tfidf_upgrade
+    type: double
+  - name: tfidf_usb
+    type: double
+  - name: tfidf_use
+    type: double
+  - name: tfidf_used
+    type: double
+  - name: tfidf_useful
+    type: double
+  - name: tfidf_user
+    type: double
+  - name: tfidf_uses
+    type: double
+  - name: tfidf_using
+    type: double
+  - name: tfidf_value
+    type: double
+  - name: tfidf_version
+    type: double
+  - name: tfidf_video
+    type: double
+  - name: tfidf_videos
+    type: double
+  - name: tfidf_volume
+    type: double
+  - name: tfidf_wall
+    type: double
+  - name: tfidf_want
+    type: double
+  - name: tfidf_wanted
+    type: double
+  - name: tfidf_wasnt
+    type: double
+  - name: tfidf_watch
+    type: double
+  - name: tfidf_way
+    type: double
+  - name: tfidf_web
+    type: double
+  - name: tfidf_week
+    type: double
+  - name: tfidf_weeks
+    type: double
+  - name: tfidf_weight
+    type: double
+  - name: tfidf_went
+    type: double
+  - name: tfidf_white
+    type: double
+  - name: tfidf_wifi
+    type: double
+  - name: tfidf_windows
+    type: double
+  - name: tfidf_wire
+    type: double
+  - name: tfidf_wireless
+    type: double
+  - name: tfidf_wish
+    type: double
+  - name: tfidf_wont
+    type: double
+  - name: tfidf_work
+    type: double
+  - name: tfidf_worked
+    type: double
+  - name: tfidf_working
+    type: double
+  - name: tfidf_works
+    type: double
+  - name: tfidf_works great
+    type: double
+  - name: tfidf_worth
+    type: double
+  - name: tfidf_wouldnt
+    type: double
+  - name: tfidf_wrong
+    type: double
+  - name: tfidf_year
+    type: double
+  - name: tfidf_years
+    type: double
+  - name: tfidf_yes
+    type: double
+  - name: tfidf_youll
+    type: double
+  - name: tfidf_youre
+    type: double
+  - name: tfidf_zoom
+    type: double
+
+  - name: sbert_0
+    type: double
+  - name: sbert_1
+    type: double
+  - name: sbert_2
+    type: double
+  - name: sbert_3
+    type: double
+  - name: sbert_4
+    type: double
+  - name: sbert_5
+    type: double
+  - name: sbert_6
+    type: double
+  - name: sbert_7
+    type: double
+  - name: sbert_8
+    type: double
+  - name: sbert_9
+    type: double
+  - name: sbert_10
+    type: double
+  - name: sbert_11
+    type: double
+  - name: sbert_12
+    type: double
+  - name: sbert_13
+    type: double
+  - name: sbert_14
+    type: double
+  - name: sbert_15
+    type: double
+  - name: sbert_16
+    type: double
+  - name: sbert_17
+    type: double
+  - name: sbert_18
+    type: double
+  - name: sbert_19
+    type: double
+  - name: sbert_20
+    type: double
+  - name: sbert_21
+    type: double
+  - name: sbert_22
+    type: double
+  - name: sbert_23
+    type: double
+  - name: sbert_24
+    type: double
+  - name: sbert_25
+    type: double
+  - name: sbert_26
+    type: double
+  - name: sbert_27
+    type: double
+  - name: sbert_28
+    type: double
+  - name: sbert_29
+    type: double
+  - name: sbert_30
+    type: double
+  - name: sbert_31
     type: double
