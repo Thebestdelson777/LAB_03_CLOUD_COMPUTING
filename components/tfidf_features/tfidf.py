@@ -37,15 +37,13 @@ def build_output_df(keys_df: pd.DataFrame, matrix, feature_names):
 
     out_df = pd.concat(
         [
-            keys_df[["asin", "reviewerID"]].reset_index(drop=True),
+            keys_df[["record_id", "asin", "reviewerID"]].reset_index(drop=True),
             tfidf_df.reset_index(drop=True)
         ],
         axis=1
     )
 
-    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
     return out_df
-
 
 def main():
     parser = argparse.ArgumentParser()

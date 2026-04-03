@@ -36,15 +36,13 @@ def main():
     scores = text.apply(sia.polarity_scores)
 
     out_df = pd.DataFrame()
+    out_df["record_id"] = df["record_id"]
     out_df["asin"] = df["asin"]
     out_df["reviewerID"] = df["reviewerID"]
     out_df["sentiment_pos"] = scores.apply(lambda d: d["pos"])
     out_df["sentiment_neg"] = scores.apply(lambda d: d["neg"])
     out_df["sentiment_neu"] = scores.apply(lambda d: d["neu"])
     out_df["sentiment_compound"] = scores.apply(lambda d: d["compound"])
-
-    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
-
     os.makedirs(args.out, exist_ok=True)
     out_df.to_parquet(os.path.join(args.out, "data.parquet"), index=False)
 

@@ -40,7 +40,8 @@ def main():
         raise ValueError(f"Split ratios must sum to 1.0, got {total}")
 
     df = read_uri_folder(args.data)
-
+    df = df.reset_index(drop=True)
+    df["record_id"] = df.index.astype(str)
     # Optional time-aware deployment split
     if "review_year" in df.columns:
         df = df.sort_values("review_year").reset_index(drop=True)

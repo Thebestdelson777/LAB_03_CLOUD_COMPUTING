@@ -41,15 +41,13 @@ def build_output_df(df: pd.DataFrame, emb, dims: int):
 
     out_df = pd.concat(
         [
-            df[["asin", "reviewerID"]].reset_index(drop=True),
+            df[["record_id", "asin", "reviewerID"]].reset_index(drop=True),
             emb_df.reset_index(drop=True)
         ],
         axis=1
     )
 
-    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
     return out_df
-
 
 def main():
     parser = argparse.ArgumentParser()

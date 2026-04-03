@@ -30,17 +30,18 @@ def main():
 
     keys = ["asin", "reviewerID"]
 
-    base_df = base_df[keys + ["overall"]].drop_duplicates(subset=keys)
-    len_df = len_df.drop_duplicates(subset=keys)
-    sent_df = sent_df.drop_duplicates(subset=keys)
-    tfidf_df = tfidf_df.drop_duplicates(subset=keys)
-    sbert_df = sbert_df.drop_duplicates(subset=keys)
+    keys = ["record_id"]
 
-    merged = base_df.merge(len_df, on=keys, how="inner")
-    merged = merged.merge(sent_df, on=keys, how="inner")
-    merged = merged.merge(tfidf_df, on=keys, how="inner")
-    merged = merged.merge(sbert_df, on=keys, how="inner")
+    base_df = base_df[["record_id", "asin", "reviewerID", "overall"]]
+    len_df = len_df
+    sent_df = sent_df
+    tfidf_df = tfidf_df
+    sbert_df = sbert_df
 
+    merged = base_df.merge(len_df.drop(columns=["asin", "reviewerID"]), on=keys, how="left")
+    merged = merged.merge(sent_df.drop(columns=["asin", "reviewerID"]), on=keys, how="left")
+    merged = merged.merge(tfidf_df.drop(columns=["asin", "reviewerID"]), on=keys, how="left")
+    merged = merged.merge(sbert_df.drop(columns=["asin", "reviewerID"]), on=keys, how="left")
     merged = merged.drop_duplicates(subset=keys)
 
     write_parquet(merged, args.out)
