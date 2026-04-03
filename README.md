@@ -1,4 +1,5 @@
 # Lab 4 – Text Feature Engineering Pipeline (Azure ML)
+
 **Delson Fernandes – 60302101**
 
 ---
@@ -17,13 +18,14 @@ The pipeline is built using modular Azure ML components and executed as a pipeli
 
 The goal of this lab is to:
 
-- Convert raw text reviews into meaningful numerical features
-- Ensure reproducible and modular feature engineering using Azure ML
-- Avoid feature engineering during model training (required for Assignment 2)
-- Generate clean, merged datasets with:
-  - one row per review
-  - preserved label (`overall`)
-  - multiple feature types
+* Convert raw text reviews into meaningful numerical features
+* Ensure reproducible and modular feature engineering using Azure ML
+* Avoid feature engineering during model training (required for Assignment 2)
+* Generate clean, merged datasets with:
+
+  * one row per review
+  * preserved label (`overall`)
+  * multiple feature types
 
 ---
 
@@ -53,20 +55,30 @@ az ml job create --file pipelines/feature_pipeline.yml
 
 The dataset is split into four partitions:
 
-- Train (60%)
-- Validation (15%)
-- Test (15%)
-- Deployment (10%)
+* Train (60%)
+* Validation (15%)
+* Test (15%)
+* Deployment (10%)
 
-This structure is required for Assignment 2.
+### 🔥 Key Fix
 
-Where possible, `review_year` is used to ensure the deployment set represents more recent data, helping simulate real-world production scenarios.
+A unique identifier is created:
+
+```python
+df["record_id"] = df.index.astype(str)
+```
+
+This ensures:
+
+* one unique row per review
+* correct alignment across all feature components
 
 **Outputs:**
-- `train`
-- `val`
-- `test`
-- `deploy`
+
+* `train`
+* `val`
+* `test`
+* `deploy`
 
 ---
 
@@ -77,16 +89,17 @@ Where possible, `review_year` is used to ensure the deployment set represents mo
 This step standardizes review text to improve feature quality.
 
 Processing includes:
-- lowercasing
-- removing punctuation
-- cleaning whitespace
-- removing noise
 
-Applied to:
-- train
-- validation
-- test
-- deployment
+* lowercasing
+* removing punctuation
+* cleaning whitespace
+
+Applied to all splits:
+
+* train
+* validation
+* test
+* deployment
 
 ---
 
@@ -95,14 +108,16 @@ Applied to:
 **Component:** `review_length`
 
 Generated features:
-- `review_length_chars`
-- `review_length_words`
 
-These capture the size and verbosity of each review.
+* `review_length_chars`
+* `review_length_words`
 
-To ensure safe merging, the output is reduced to one row per:
-- `asin`
-- `reviewerID`
+These capture review size and verbosity.
+
+### ✅ Important Fix
+
+* Uses `record_id` to preserve row-level alignment
+* No deduplication is performed
 
 ---
 
@@ -110,17 +125,19 @@ To ensure safe merging, the output is reduced to one row per:
 
 **Component:** `sentiment`
 
-Sentiment is computed using VADER sentiment analysis.
+Sentiment is computed using VADER.
 
 Generated features:
-- `sentiment_pos`
-- `sentiment_neg`
-- `sentiment_neu`
-- `sentiment_compound`
 
-Important design decision:
-- This component **does NOT include the `overall` label**
-- This prevents duplicate columns (`overall_x`, `overall_y`) during merging
+* `sentiment_pos`
+* `sentiment_neg`
+* `sentiment_neu`
+* `sentiment_compound`
+
+### ✅ Important Design
+
+* Does NOT include `overall` label
+* Prevents duplicate columns (`overall_x`, `overall_y`)
 
 ---
 
@@ -131,21 +148,23 @@ Important design decision:
 TF-IDF features are generated using `TfidfVectorizer`.
 
 Configuration:
-- stop words removed
-- n-grams: (1,2)
-- max features: 500
 
-Important design:
-- TF-IDF is **fit only on the training set**
-- then applied to validation, test, and deployment sets
-- avoids data leakage
+* stop words removed
+* n-grams: (1,1)
+* max features: ~300–500
 
-Output format:
-- **wide format (one row per review)**
-- feature columns like:
-  - `tfidf_battery`
-  - `tfidf_quality`
-  - `tfidf_sound quality`
+### 🔥 Critical Fix
+
+* Previously reduced dataset incorrectly using `drop_duplicates`
+* Now preserves full dataset using `record_id`
+
+### Output format:
+
+* wide format (one row per review)
+* columns like:
+
+  * `tfidf_battery`
+  * `tfidf_quality`
 
 ---
 
@@ -153,17 +172,18 @@ Output format:
 
 **Component:** `sbert_embeddings`
 
-Semantic features are generated using:
-- `all-MiniLM-L6-v2`
+Semantic features generated using:
 
-To ensure efficiency:
-- text is truncated before encoding
-- embeddings reduced to **32 dimensions**
+* `all-MiniLM-L6-v2`
+
+Optimizations:
+
+* text truncation
+* reduced embedding size → **32 dimensions**
 
 Generated features:
-- `sbert_0` to `sbert_31`
 
-These embeddings capture deeper meaning beyond simple word frequencies.
+* `sbert_0` → `sbert_31`
 
 ---
 
@@ -171,89 +191,123 @@ These embeddings capture deeper meaning beyond simple word frequencies.
 
 **Component:** `merge_features`
 
-This is the most critical step.
+This is the most critical stage.
 
-The following datasets are merged:
-- base split (contains `overall`)
-- review length features
-- sentiment features
-- TF-IDF features
-- SBERT features
+### 🔥 FINAL FIX (IMPORTANT)
 
-Merge keys:
-- `asin`
-- `reviewerID`
+Merge key:
+
+```python
+record_id
+```
 
 Merge type:
-- **inner join**
+
+```python
+left join
+```
+
+### Why this matters:
+
+* preserves ALL rows from split
+* prevents dataset shrinkage
+* ensures correct feature alignment
+
+Merged datasets include:
+
+* base dataset (with `overall`)
+* length features
+* sentiment features
+* TF-IDF features
+* SBERT features
 
 ---
 
-## Critical Merge Fixes
+## Critical Issues Identified & Fixed
 
-Several issues were identified and resolved:
+### ❌ Problem 1: Dataset Shrinking (~9k rows)
 
-### 1. Duplicate key problem
-Feature components were producing multiple rows per review.
+Cause:
 
-Fix:
-```python
-df.drop_duplicates(subset=["asin", "reviewerID"])
-```
-
-### 2. Duplicate label columns
-Previously:
-- `overall_x`
-- `overall_y`
+* `drop_duplicates(["asin", "reviewerID"])`
 
 Fix:
-- Only base dataset contains `overall`
-- feature components exclude label
 
-### 3. Many-to-many joins
-Caused repeated rows after merging.
+* replaced with `record_id`
+
+---
+
+### ❌ Problem 2: Wrong Merge Key
+
+Cause:
+
+* using non-unique keys (`asin`, `reviewerID`)
 
 Fix:
-- enforce one row per key before merging
 
-### 4. TF-IDF format issue
-Previously long format caused merge explosion.
+* introduced `record_id`
+
+---
+
+### ❌ Problem 3: Inner Join Loss
+
+Cause:
+
+* `how="inner"`
 
 Fix:
-- converted to wide format
+
+* changed to `how="left"`
+
+---
+
+### ❌ Problem 4: TF-IDF Misalignment
+
+Cause:
+
+* inconsistent row indexing
+
+Fix:
+
+* aligned all outputs using `record_id`
 
 ---
 
 ## Final Output Structure
 
-Each merged dataset contains:
+Each dataset contains:
 
 ### Keys
-- `asin`
-- `reviewerID`
+
+* `record_id`
+* `asin`
+* `reviewerID`
 
 ### Label
-- `overall`
+
+* `overall`
 
 ### Features
 
 **Length**
-- review_length_chars
-- review_length_words
+
+* review_length_chars
+* review_length_words
 
 **Sentiment**
-- sentiment_pos
-- sentiment_neg
-- sentiment_neu
-- sentiment_compound
+
+* sentiment_pos
+* sentiment_neg
+* sentiment_neu
+* sentiment_compound
 
 **TF-IDF**
-- tfidf_... (hundreds of columns)
+
+* tfidf_* (hundreds of columns)
 
 **SBERT**
-- sbert_0 → sbert_31
 
-Each row represents one unique review.
+* sbert_0 → sbert_31
 
 ---
 
@@ -261,31 +315,29 @@ Each row represents one unique review.
 
 The pipeline produces four datasets:
 
-- Train dataset
-- Validation dataset
-- Test dataset
-- Deployment dataset
+* Training dataset (~180k rows)
+* Validation dataset (~45k rows)
+* Test dataset (~45k rows)
+* Deployment dataset (~30k rows)
 
-Each is stored as:
+Each stored as:
 
 ```bash
 data.parquet
 ```
 
-These datasets are ready to be used directly in Assignment 2.
-
 ---
 
 ## Why These Features Matter
 
-Each feature type contributes differently:
+| Feature Type | Purpose            |
+| ------------ | ------------------ |
+| Length       | review structure   |
+| Sentiment    | emotional tone     |
+| TF-IDF       | keyword importance |
+| SBERT        | semantic meaning   |
 
-- **Length features** → review structure
-- **Sentiment features** → emotional tone
-- **TF-IDF** → important keywords
-- **SBERT embeddings** → semantic meaning
-
-Together, they create a strong representation for machine learning models.
+This combination creates a strong feature space for machine learning.
 
 ---
 
@@ -309,13 +361,14 @@ pipelines/
 
 ## Key Improvements from Initial Version
 
-- upgraded from 3-way split → 4-way split  
-- applied features to ALL splits  
-- fixed duplicate merge errors  
-- preserved label correctly  
-- integrated TF-IDF into final dataset  
-- added SBERT embeddings  
-- ensured one row per review  
+* Added **record_id for correct row alignment**
+* Fixed merge shrinking issue
+* Switched from inner → left joins
+* Removed incorrect deduplication
+* Ensured full dataset propagation
+* Added SBERT embeddings
+* Integrated TF-IDF correctly
+* Produced 4 final datasets
 
 ---
 
@@ -323,17 +376,17 @@ pipelines/
 
 The pipeline successfully:
 
-- builds modular Azure ML components  
-- processes raw data into structured features  
-- produces four clean datasets  
-- avoids data leakage  
-- ensures merge correctness  
-- prepares data for Assignment 2 training  
+* processes raw data into structured features
+* preserves full dataset size
+* avoids data leakage
+* ensures correct feature alignment
+* produces 4 clean datasets ready for training
 
 ---
 
 ## Conclusion
 
-This Lab 4 pipeline provides a complete, reusable feature engineering solution using Azure Machine Learning. The final datasets are fully prepared for training machine learning models without requiring any additional preprocessing.
+This Lab 4 pipeline provides a complete and production-style feature engineering workflow using Azure Machine Learning.
 
-The design ensures scalability, reproducibility, and compatibility with real-world ML workflows.
+The final datasets are fully prepared for Assignment 2 and can be used directly for training without additional preprocessing.
+
