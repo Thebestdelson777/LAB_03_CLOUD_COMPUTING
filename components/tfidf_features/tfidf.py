@@ -1,23 +1,20 @@
 import argparse
 import os
+import glob
 import pandas as pd
-import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--train", type=str, required=True)
-    p.add_argument("--val", type=str, required=True)
-    p.add_argument("--test", type=str, required=True)
-    p.add_argument("--train_out", type=str, required=True)
-    p.add_argument("--val_out", type=str, required=True)
-    p.add_argument("--test_out", type=str, required=True)
-    return p.parse_args()
+def read_uri_folder(path: str) -> pd.DataFrame:
+    parquet_files = glob.glob(os.path.join(path, "*.parquet"))
+    if parquet_files:
+        return pd.read_parquet(parquet_files[0])
 
+    parquet_files = glob.glob(os.path.join(path, "**/*.parquet"), recursive=True)
+    if parquet_files:
+        return pd.read_parquet(parquet_files[0])
 
-def read_parquet(folder_path: str) -> pd.DataFrame:
-    return pd.read_parquet(os.path.join(folder_path, "data.parquet"))
+    raise FileNotFoundError(f"No parquet file found in: {path}")
 
 
 def write_parquet(df: pd.DataFrame, out_dir: str):
@@ -32,67 +29,71 @@ def get_text_column(df: pd.DataFrame) -> str:
     raise ValueError(f"No text column found. Columns: {list(df.columns)}")
 
 
-def sparse_to_long(X, feature_names, keys_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Convert CSR matrix to long format:
-    row_id, term, tfidf (+ optional keys like reviewerID/asin)
-    """
-    X = X.tocsr()
-    coo = X.tocoo()
+def build_output_df(keys_df: pd.DataFrame, matrix, feature_names):
+    tfidf_df = pd.DataFrame(
+        matrix.toarray(),
+        columns=[f"tfidf_{name}" for name in feature_names]
+    )
 
-    terms = np.asarray(feature_names, dtype=object)[coo.col]
+    out_df = pd.concat(
+        [
+            keys_df[["asin", "reviewerID"]].reset_index(drop=True),
+            tfidf_df.reset_index(drop=True)
+        ],
+        axis=1
+    )
 
-    out = pd.DataFrame({
-        "row_id": coo.row.astype(np.int32),
-        "term": terms,
-        "tfidf": coo.data.astype(np.float32),
-    })
-
-    for key in ["reviewerID", "asin"]:
-        if key in keys_df.columns:
-            out[key] = keys_df[key].iloc[out["row_id"]].values
-
-    cols = [c for c in ["reviewerID", "asin", "row_id", "term", "tfidf"] if c in out.columns]
-    return out[cols]
+    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
+    return out_df
 
 
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train", type=str, required=True)
+    parser.add_argument("--val", type=str, required=True)
+    parser.add_argument("--test", type=str, required=True)
+    parser.add_argument("--deploy", type=str, required=True)
+    parser.add_argument("--train_out", type=str, required=True)
+    parser.add_argument("--val_out", type=str, required=True)
+    parser.add_argument("--test_out", type=str, required=True)
+    parser.add_argument("--deploy_out", type=str, required=True)
+    args = parser.parse_args()
 
-    train_df = read_parquet(args.train)
-    val_df = read_parquet(args.val)
-    test_df = read_parquet(args.test)
+    train_df = read_uri_folder(args.train)
+    val_df = read_uri_folder(args.val)
+    test_df = read_uri_folder(args.test)
+    deploy_df = read_uri_folder(args.deploy)
 
     text_col = get_text_column(train_df)
 
     vectorizer = TfidfVectorizer(
         stop_words="english",
         ngram_range=(1, 2),
-        max_features=20000,
-        dtype=np.float32
+        max_features=500
     )
 
-    train_text = train_df[text_col].fillna("").astype(str)
-    vectorizer.fit(train_text)
+    X_train = vectorizer.fit_transform(train_df[text_col].fillna("").astype(str))
+    X_val = vectorizer.transform(val_df[text_col].fillna("").astype(str))
+    X_test = vectorizer.transform(test_df[text_col].fillna("").astype(str))
+    X_deploy = vectorizer.transform(deploy_df[text_col].fillna("").astype(str))
 
     feature_names = vectorizer.get_feature_names_out()
 
-    X_train = vectorizer.transform(train_text)
-    X_val = vectorizer.transform(val_df[text_col].fillna("").astype(str))
-    X_test = vectorizer.transform(test_df[text_col].fillna("").astype(str))
-
-    train_out = sparse_to_long(X_train, feature_names, train_df)
-    val_out = sparse_to_long(X_val, feature_names, val_df)
-    test_out = sparse_to_long(X_test, feature_names, test_df)
+    train_out = build_output_df(train_df, X_train, feature_names)
+    val_out = build_output_df(val_df, X_val, feature_names)
+    test_out = build_output_df(test_df, X_test, feature_names)
+    deploy_out = build_output_df(deploy_df, X_deploy, feature_names)
 
     write_parquet(train_out, args.train_out)
     write_parquet(val_out, args.val_out)
     write_parquet(test_out, args.test_out)
+    write_parquet(deploy_out, args.deploy_out)
 
-    print("TFIDF written in sparse long format.")
-    print("Train nonzeros:", len(train_out))
-    print("Val nonzeros:", len(val_out))
-    print("Test nonzeros:", len(test_out))
+    print("TF-IDF complete")
+    print("Train shape:", train_out.shape)
+    print("Val shape:", val_out.shape)
+    print("Test shape:", test_out.shape)
+    print("Deploy shape:", deploy_out.shape)
 
 
 if __name__ == "__main__":

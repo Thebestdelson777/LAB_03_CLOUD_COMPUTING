@@ -30,13 +30,13 @@ def main():
     text = df["reviewText"].fillna("").astype(str)
 
     out_df = pd.DataFrame()
-    if "reviewerID" in df.columns:
-        out_df["reviewerID"] = df["reviewerID"]
-    if "asin" in df.columns:
-        out_df["asin"] = df["asin"]
+    out_df["asin"] = df["asin"]
+    out_df["reviewerID"] = df["reviewerID"]
 
     out_df["review_length_chars"] = text.str.len()
     out_df["review_length_words"] = text.str.split().apply(len)
+
+    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
 
     os.makedirs(args.out, exist_ok=True)
     out_df.to_parquet(os.path.join(args.out, "data.parquet"), index=False)

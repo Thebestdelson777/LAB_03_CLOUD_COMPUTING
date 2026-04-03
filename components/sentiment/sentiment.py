@@ -2,7 +2,6 @@ import argparse
 import os
 import glob
 import pandas as pd
-
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
@@ -33,16 +32,23 @@ def main():
     nltk.download("vader_lexicon", quiet=True)
     sia = SentimentIntensityAnalyzer()
 
-    scores = df["reviewText"].fillna("").astype(str).apply(sia.polarity_scores)
-    df["sentiment_pos"] = scores.apply(lambda d: d["pos"])
-    df["sentiment_neg"] = scores.apply(lambda d: d["neg"])
-    df["sentiment_neu"] = scores.apply(lambda d: d["neu"])
-    df["sentiment_compound"] = scores.apply(lambda d: d["compound"])
+    text = df["reviewText"].fillna("").astype(str)
+    scores = text.apply(sia.polarity_scores)
+
+    out_df = pd.DataFrame()
+    out_df["asin"] = df["asin"]
+    out_df["reviewerID"] = df["reviewerID"]
+    out_df["sentiment_pos"] = scores.apply(lambda d: d["pos"])
+    out_df["sentiment_neg"] = scores.apply(lambda d: d["neg"])
+    out_df["sentiment_neu"] = scores.apply(lambda d: d["neu"])
+    out_df["sentiment_compound"] = scores.apply(lambda d: d["compound"])
+
+    out_df = out_df.drop_duplicates(subset=["asin", "reviewerID"])
 
     os.makedirs(args.out, exist_ok=True)
-    df.to_parquet(os.path.join(args.out, "data.parquet"), index=False)
+    out_df.to_parquet(os.path.join(args.out, "data.parquet"), index=False)
 
-    print("Output rows:", len(df))
+    print("Output rows:", len(out_df))
 
 
 if __name__ == "__main__":

@@ -1,10 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
 
-settings:
-  force_rerun: true
-
-compute: azureml:Compute-cluster-60302101
+compute: azureml:Compute-cluster-60302101-updated
 
 inputs:
   sampled_data:
@@ -36,17 +33,59 @@ jobs:
     inputs:
       data: ${{parent.jobs.split.outputs.test}}
 
+  normalize_deploy:
+    type: command
+    component: azureml:normalize_text@latest
+    inputs:
+      data: ${{parent.jobs.split.outputs.deploy}}
+
   length_train:
     type: command
     component: azureml:review_length@latest
     inputs:
       data: ${{parent.jobs.normalize_train.outputs.out}}
 
+  length_val:
+    type: command
+    component: azureml:review_length@latest
+    inputs:
+      data: ${{parent.jobs.normalize_val.outputs.out}}
+
+  length_test:
+    type: command
+    component: azureml:review_length@latest
+    inputs:
+      data: ${{parent.jobs.normalize_test.outputs.out}}
+
+  length_deploy:
+    type: command
+    component: azureml:review_length@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
+
   sentiment_train:
     type: command
     component: azureml:sentiment@latest
     inputs:
       data: ${{parent.jobs.normalize_train.outputs.out}}
+
+  sentiment_val:
+    type: command
+    component: azureml:sentiment@latest
+    inputs:
+      data: ${{parent.jobs.normalize_val.outputs.out}}
+
+  sentiment_test:
+    type: command
+    component: azureml:sentiment@latest
+    inputs:
+      data: ${{parent.jobs.normalize_test.outputs.out}}
+
+  sentiment_deploy:
+    type: command
+    component: azureml:sentiment@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
 
   tfidf:
     type: command
@@ -55,17 +94,54 @@ jobs:
       train: ${{parent.jobs.normalize_train.outputs.out}}
       val: ${{parent.jobs.normalize_val.outputs.out}}
       test: ${{parent.jobs.normalize_test.outputs.out}}
+      deploy: ${{parent.jobs.normalize_deploy.outputs.out}}
 
-  # Optional / may be heavy. You can enable once everything else works.
-  # sbert_train:
-  #   type: command
-  #   component: azureml:sbert_embeddings@latest
-  #   inputs:
-  #     data: ${{parent.jobs.normalize_train.outputs.out}}
+  sbert:
+    type: command
+    component: azureml:sbert_embeddings@latest
+    inputs:
+      train: ${{parent.jobs.normalize_train.outputs.out}}
+      val: ${{parent.jobs.normalize_val.outputs.out}}
+      test: ${{parent.jobs.normalize_test.outputs.out}}
+      deploy: ${{parent.jobs.normalize_deploy.outputs.out}}
+      dims: 32
 
-  merge_all:
+  merge_train:
     type: command
     component: azureml:merge_features@latest
     inputs:
+      base: ${{parent.jobs.normalize_train.outputs.out}}
       length: ${{parent.jobs.length_train.outputs.out}}
       sentiment: ${{parent.jobs.sentiment_train.outputs.out}}
+      tfidf: ${{parent.jobs.tfidf.outputs.train_out}}
+      sbert: ${{parent.jobs.sbert.outputs.train_out}}
+
+  merge_val:
+    type: command
+    component: azureml:merge_features@latest
+    inputs:
+      base: ${{parent.jobs.normalize_val.outputs.out}}
+      length: ${{parent.jobs.length_val.outputs.out}}
+      sentiment: ${{parent.jobs.sentiment_val.outputs.out}}
+      tfidf: ${{parent.jobs.tfidf.outputs.val_out}}
+      sbert: ${{parent.jobs.sbert.outputs.val_out}}
+
+  merge_test:
+    type: command
+    component: azureml:merge_features@latest
+    inputs:
+      base: ${{parent.jobs.normalize_test.outputs.out}}
+      length: ${{parent.jobs.length_test.outputs.out}}
+      sentiment: ${{parent.jobs.sentiment_test.outputs.out}}
+      tfidf: ${{parent.jobs.tfidf.outputs.test_out}}
+      sbert: ${{parent.jobs.sbert.outputs.test_out}}
+
+  merge_deploy:
+    type: command
+    component: azureml:merge_features@latest
+    inputs:
+      base: ${{parent.jobs.normalize_deploy.outputs.out}}
+      length: ${{parent.jobs.length_deploy.outputs.out}}
+      sentiment: ${{parent.jobs.sentiment_deploy.outputs.out}}
+      tfidf: ${{parent.jobs.tfidf.outputs.deploy_out}}
+      sbert: ${{parent.jobs.sbert.outputs.deploy_out}}
