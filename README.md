@@ -136,7 +136,7 @@ Generated features:
 
 ### ✅ Important Design
 
-* Does NOT include `overall` label
+
 * Prevents duplicate columns (`overall_x`, `overall_y`)
 
 ---
