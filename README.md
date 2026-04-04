@@ -1,392 +1,263 @@
-# Lab 4 – Text Feature Engineering Pipeline (Azure ML)
-
-**Delson Fernandes – 60302101**
-
----
+#Delson fernandes-60302101
+# Assignment 2 — Model Training, Automation, Hyperparameter Tuning, and Deployment with Azure ML
 
 ## Overview
 
-This project implements an end-to-end feature engineering pipeline using Azure Machine Learning for the Amazon Electronics review dataset.
+This assignment extends the Lab 4 feature engineering pipeline into a complete MLOps workflow using Azure Machine Learning and Azure DevOps.
 
-The objective of Lab 4 is to transform raw review data into structured, reusable machine learning features and prepare fully processed datasets for downstream model training (Assignment 2).
+The main goal was to reuse the merged feature datasets generated in Lab 4, train a machine learning model on Azure ML compute, track experiments with MLflow, automate training through Azure DevOps, tune hyperparameters using a sweep job, register model versions in the Azure ML Model Registry, deploy the final model to a Managed Online Endpoint, and invoke the deployed endpoint using the deployment split.
 
-The pipeline is built using modular Azure ML components and executed as a pipeline job on Azure compute. It produces **four merged datasets (train, validation, test, deployment)** containing all engineered features.
+This project follows a practical end-to-end workflow:
 
----
-
-## Objective
-
-The goal of this lab is to:
-
-* Convert raw text reviews into meaningful numerical features
-* Ensure reproducible and modular feature engineering using Azure ML
-* Avoid feature engineering during model training (required for Assignment 2)
-* Generate clean, merged datasets with:
-
-  * one row per review
-  * preserved label (`overall`)
-  * multiple feature types
+**feature datasets → training job → MLflow tracking → hyperparameter tuning → model registry → DevOps automation → endpoint deployment → deployment evaluation**
 
 ---
 
-## Pipeline Architecture
+## Repository Branch
 
-The final pipeline consists of the following stages:
+This work was completed on the following branch:
 
-1. Dataset Splitting (4-way)
-2. Text Normalization
-3. Review Length Feature Extraction
-4. Sentiment Feature Extraction
-5. TF-IDF Feature Generation
-6. SBERT Embedding Generation
-7. Feature Merging (for each split)
-
-Pipeline execution command:
-
-```bash
-az ml job create --file pipelines/feature_pipeline.yml
-```
+`assignment2_model_training`
 
 ---
 
-## 1. Dataset Splitting
+## Azure ML Data Assets Used
 
-**Component:** `split_dataset`
+The following merged feature datasets from Lab 4 were registered as Azure ML Data Assets and reused in this assignment:
 
-The dataset is split into four partitions:
-
-* Train (60%)
-* Validation (15%)
-* Test (15%)
-* Deployment (10%)
-
-### 🔥 Key Fix
-
-A unique identifier is created:
-
-```python
-df["record_id"] = df.index.astype(str)
-```
-
-This ensures:
-
-* one unique row per review
-* correct alignment across all feature components
-
-**Outputs:**
-
-* `train`
-* `val`
-* `test`
-* `deploy`
+- `amazon_review_merged_features_train`
+- `amazon_review_merged_features_val`
+- `amazon_review_merged_features_test`
+- `amazon_review_merged_features_deploy`
 
 ---
 
-## 2. Text Normalization
+## Model Choice
 
-**Component:** `normalize_text`
+The selected model was **Logistic Regression**.
 
-This step standardizes review text to improve feature quality.
+### Why Logistic Regression?
 
-Processing includes:
-
-* lowercasing
-* removing punctuation
-* cleaning whitespace
-
-Applied to all splits:
-
-* train
-* validation
-* test
-* deployment
+- simple and efficient  
+- fast to train on Azure ML compute  
+- easy to debug  
+- suitable for high-dimensional features (SBERT + TF-IDF)  
+- works well for automated runs and sweep jobs  
 
 ---
 
-## 3. Review Length Features
+## Label Definition
 
-**Component:** `review_length`
+The original `overall` rating was converted into a binary target:
 
-Generated features:
+- `1` if `overall >= 4`  
+- `0` otherwise  
 
-* `review_length_chars`
-* `review_length_words`
-
-These capture review size and verbosity.
-
-### ✅ Important Fix
-
-* Uses `record_id` to preserve row-level alignment
-* No deduplication is performed
+This converts the task into binary classification (positive vs not-positive).
 
 ---
 
-## 4. Sentiment Features
+## Features Used
 
-**Component:** `sentiment`
+The merged datasets already contained engineered features:
 
-Sentiment is computed using VADER.
-
-Generated features:
-
-* `sentiment_pos`
-* `sentiment_neg`
-* `sentiment_neu`
-* `sentiment_compound`
-
-### ✅ Important Design
-
-
-* Prevents duplicate columns (`overall_x`, `overall_y`)
+- **SBERT embeddings** (semantic text representation)  
+- **TF-IDF features** (important word patterns)  
+- **Sentiment features**  
+  - sentiment_pos  
+  - sentiment_neg  
+  - sentiment_neu  
+  - sentiment_compound  
+- **Length features**  
+  - review_length_chars  
+  - review_length_words  
 
 ---
 
-## 5. TF-IDF Features
+## Training Script
 
-**Component:** `tfidf_features`
+File: `src/train.py`
 
-TF-IDF features are generated using `TfidfVectorizer`.
+Steps:
 
-Configuration:
-
-* stop words removed
-* n-grams: (1,1)
-* max features: ~300–500
-
-### 🔥 Critical Fix
-
-* Previously reduced dataset incorrectly using `drop_duplicates`
-* Now preserves full dataset using `record_id`
-
-### Output format:
-
-* wide format (one row per review)
-* columns like:
-
-  * `tfidf_battery`
-  * `tfidf_quality`
+1. Load train, validation, test datasets  
+2. Create binary labels from `overall`  
+3. Build feature matrix  
+4. Train Logistic Regression model  
+5. Evaluate on all splits  
+6. Log metrics using MLflow  
+7. Save model as `model.pkl`  
 
 ---
 
-## 6. SBERT Embedding Features
+## Training Environment
 
-**Component:** `sbert_embeddings`
+Defined in: `env/conda.yml`
 
-Semantic features generated using:
+Includes:
 
-* `all-MiniLM-L6-v2`
-
-Optimizations:
-
-* text truncation
-* reduced embedding size → **32 dimensions**
-
-Generated features:
-
-* `sbert_0` → `sbert_31`
+- pandas  
+- pyarrow  
+- scikit-learn  
+- joblib  
+- mlflow  
+- azureml-mlflow  
 
 ---
 
-## 7. Feature Merging
+## Manual Training Job
 
-**Component:** `merge_features`
+Defined in: `jobs/train_job.yml`
 
-This is the most critical stage.
+### Results (All Features)
 
-### 🔥 FINAL FIX (IMPORTANT)
+- Train accuracy ≈ 0.801  
+- Validation accuracy ≈ 0.804  
+- Test accuracy ≈ 0.800  
 
-Merge key:
-
-```python
-record_id
-```
-
-Merge type:
-
-```python
-left join
-```
-
-### Why this matters:
-
-* preserves ALL rows from split
-* prevents dataset shrinkage
-* ensures correct feature alignment
-
-Merged datasets include:
-
-* base dataset (with `overall`)
-* length features
-* sentiment features
-* TF-IDF features
-* SBERT features
+Model showed stable performance with no major overfitting.
 
 ---
 
-## Critical Issues Identified & Fixed
+## Hyperparameter Tuning (Sweep)
 
-### ❌ Problem 1: Dataset Shrinking (~9k rows)
+File: `jobs/sweep_job.yml`
 
-Cause:
+### Tuned Parameters
 
-* `drop_duplicates(["asin", "reviewerID"])`
+- `c_value`  
+- `max_iter`  
 
-Fix:
+### Best Configuration
 
-* replaced with `record_id`
+- `c_value = 0.89`  
+- `max_iter = 300`  
 
----
-
-### ❌ Problem 2: Wrong Merge Key
-
-Cause:
-
-* using non-unique keys (`asin`, `reviewerID`)
-
-Fix:
-
-* introduced `record_id`
+Chosen for best balance between performance and efficiency.
 
 ---
 
-### ❌ Problem 3: Inner Join Loss
+## Feature Experiments
 
-Cause:
+Three configurations tested:
 
-* `how="inner"`
+1. All features (SBERT + TF-IDF + sentiment + length)  
+2. SBERT only  
+3. SBERT + TF-IDF  
 
-Fix:
+### Results
 
-* changed to `how="left"`
+- All features: validation accuracy ≈ 0.804  
+- SBERT only: validation accuracy ≈ 0.806  
+- SBERT + TF-IDF: validation accuracy ≈ 0.864  
 
----
+### Best Model
 
-### ❌ Problem 4: TF-IDF Misalignment
+**SBERT + TF-IDF performed the best**
 
-Cause:
-
-* inconsistent row indexing
-
-Fix:
-
-* aligned all outputs using `record_id`
-
----
-
-## Final Output Structure
-
-Each dataset contains:
-
-### Keys
-
-* `record_id`
-* `asin`
-* `reviewerID`
-
-### Label
-
-* `overall`
-
-### Features
-
-**Length**
-
-* review_length_chars
-* review_length_words
-
-**Sentiment**
-
-* sentiment_pos
-* sentiment_neg
-* sentiment_neu
-* sentiment_compound
-
-**TF-IDF**
-
-* tfidf_* (hundreds of columns)
-
-**SBERT**
-
-* sbert_0 → sbert_31
+Reason:
+- SBERT → semantic meaning  
+- TF-IDF → word importance  
+- Combined → stronger representation  
 
 ---
 
-## Output Datasets
+## Azure DevOps Automation
 
-The pipeline produces four datasets:
+Pipeline: `azure-pipelines.yml`
 
-* Training dataset (~180k rows)
-* Validation dataset (~45k rows)
-* Test dataset (~45k rows)
-* Deployment dataset (~30k rows)
+### What it does:
 
-Each stored as:
+- triggers on push  
+- authenticates Azure  
+- submits training job  
+- streams logs  
 
-```bash
-data.parquet
-```
+✔ Successful CI/CD automation achieved
 
 ---
 
-## Why These Features Matter
+## Model Registry
 
-| Feature Type | Purpose            |
-| ------------ | ------------------ |
-| Length       | review structure   |
-| Sentiment    | emotional tone     |
-| TF-IDF       | keyword importance |
-| SBERT        | semantic meaning   |
+Model name:
 
-This combination creates a strong feature space for machine learning.
+`amazon-review-sentiment-model`
 
----
+### Versions:
 
-## Repository Structure
-
-```bash
-components/
-  split_dataset/
-  normalize_text/
-  review_length/
-  sentiment/
-  tfidf_features/
-  sbert_embeddings/
-  merge_features/
-
-pipelines/
-  feature_pipeline.yml
-```
+- v1 → initial model  
+- v2 → tuned model  
+- v3 → final best model  
 
 ---
 
-## Key Improvements from Initial Version
+## Model Deployment
 
-* Added **record_id for correct row alignment**
-* Fixed merge shrinking issue
-* Switched from inner → left joins
-* Removed incorrect deduplication
-* Ensured full dataset propagation
-* Added SBERT embeddings
-* Integrated TF-IDF correctly
-* Produced 4 final datasets
+Deployment uses Azure ML Managed Online Endpoint.
+
+### Components:
+
+- Model: latest registered version  
+- Script: `src/score.py`  
+- Env: `env/inference_conda.yml`  
+- Config: `jobs/deployment.yml`  
 
 ---
 
-## Final Outcome
+## Endpoint Invocation
 
-The pipeline successfully:
+Script: `src/invoke_endpoint.py`
 
-* processes raw data into structured features
-* preserves full dataset size
-* avoids data leakage
-* ensures correct feature alignment
-* produces 4 clean datasets ready for training
+Steps:
+
+1. Load deployment dataset  
+2. Build features  
+3. Send requests to endpoint  
+4. Get predictions  
+5. Compare with true labels  
+
+### Result
+
+- **Deployment accuracy: 0.8652**
+
+---
+
+## Final Model Summary
+
+- Model: Logistic Regression  
+- Features: SBERT + TF-IDF  
+- Hyperparameters:
+  - C = 0.89  
+  - max_iter = 300  
+
+### Final Performance
+
+- Validation ≈ 0.864  
+- Test ≈ 0.862  
+- Deployment ≈ 0.8652  
+
+---
+
+## Deliverables Completed
+
+- Azure ML training job  
+- MLflow tracking  
+- Hyperparameter sweep  
+- Model registration  
+- Azure DevOps pipeline  
+- Endpoint deployment  
+- Deployment evaluation  
 
 ---
 
 ## Conclusion
 
-This Lab 4 pipeline provides a complete and production-style feature engineering workflow using Azure Machine Learning.
+This project implemented a complete end-to-end Azure ML workflow:
 
-The final datasets are fully prepared for Assignment 2 and can be used directly for training without additional preprocessing.
+- training  
+- tracking  
+- tuning  
+- automation  
+- deployment  
 
+The final model using **SBERT + TF-IDF** achieved the best performance and was successfully deployed.
